@@ -1,312 +1,204 @@
-# Rawtherapee
+# Best Batch-Processing Base Settings
 
-This document describes using rawtherapee for a newbie like me.
+Sony ARW in RawTherapee 5.10
 
-Currently I have a sony digital camera which has the possibility to take raw pictures .arw files.
+Important principles (read once)
+- Batch processing in RawTherapee = apply a saved processing profile (.pp3)
+- You must configure settings in the Editor first
+- Batch settings must be:
+    - Sensor-safe
+    - Lighting-agnostic
+    - Conservative
 
-This document assumes using rawtherapee 5.10 on Ubuntu 24.04.
+## STEP 1 — Open ONE representative ARW in the Editor
 
-## Setup
+Choose:
+- Typical exposure
+- Typical ISO
+- Typical lighting for the shoot
 
-For Sony ARW files, you must use Sensor with Bayer Matrix → Demosaicing Never the X-Trans section.
-Sony ARW = Bayer sensor
+Everything below is set in the Editor, then saved as a profile.
 
-All Sony cameras that produce ARW files use a Bayer CFA (Color Filter Array).
-- Sony does not use X-Trans sensors
-- X-Trans is Fujifilm-only
+## STEP 2 — RAW Tab (Sony-specific, batch-safe)
 
-So RawTherapee exposes two demosaicing pipelines:
-- Bayer Matrix → Canon, Nikon, Sony, Panasonic, Leica, etc.
-- X-Trans Matrix → Fujifilm only
+*RAW → Sensor with Bayer Matrix → Demosaicing*
 
-RawTherapee does not auto-switch visually — both sections are always visible, but only one is actually used depending on the file.
+| Setting                 | Value |
+|-------------------------|------:|
+| Method                  | AMaZE |
+| False color suppression | 2     |
+| Dual demosaicing	      | OFF   | 
 
-For ARW files:
-- The Bayer section is active
-- The X-Trans section is ignored entirely
+The Dual demosaicing option is not available in the rawtherapee 5.10 ui. The value cannot be set and is OFF by default.
 
+![raw](./images/menu-raw-demosaicing.png)
 
-### RAW Tab (Most Important for Sony)
-![Raw Tab](./images/menu-raw.png)
+📌 AMaZE is best for low–mid ISO.
+(If most of your shoot is ISO > 3200, make a second profile using RCD.)
 
-RAW tab → Sensor with Bayer Matrix
+*RAW → Sensor with Bayer Matrix → Preprocessing*
 
+| Setting             | Value  |
+|---------------------|--------|
+| Green equilibration | ON (1) |
+| PDAF lines filter	  | ON     |
+| Line noise filter	  | OFF    |
 
-#### Demosaicing (Bayer)
-- Method: AMaZE, this will use border handling
-- False Color Suppression: 2
+Sony cameras use on-sensor PDAF — this avoids banding when shadows are lifted.
 
-Optional:
+![raw](./images/menu-raw-demonsaicing-preproces.png)
 
-For high ISO (>3200):
-- Method: RCD instead of AMaZe
+*RAW → Preprocessing (global)*
 
-![Demosaicing](./images/menu-raw-demosaicing.png)
+| Setting           | Value |
+|-------------------|-------|
+| Hot pixel filter  | ON    |
+| Dead pixel filter	| ON    |
+| Threshold	        | 100   |
 
-#### Preprocessing
+Safe and inexpensive; good for batch use.
 
-*Global processing:*
+![raw](./images/menu-raw-preproces.png)
 
-- Fix broken pixels
-- Sensor-agnostic
-- Happens very early
+## STEP 3 — Color Tab (batch-safe)
 
-Settings:
-- Hot Pixel Filter: On
-- Dead Pixel Filter: On
-- Threshold: 100
+*Color → Color Management*
 
-*Bayer Matrix processing*
+| Setting	      | Value                       |
+|-----------------|-----------------------------|
+| Input profile	  | Auto-matched camera profile |
+| Working profile | ProPhoto RGB (default)      |
 
-For Sony specific artifacts
-- Fix patterns created by sensor design
-- Happens just before demosaicing
-- Highly camera-specific
+![color management](./images/menu-color-colormanagement.png)
 
-Settings apply to:
-- Line noise filter
-- Direction
-- Green equilibration
-- PDAF lines filter
+*Color → White Balance*
 
-![Preprocessing](./images/menu-raw-preprocessing.png)
+| Setting	| Value  |
+|-----------|--------|
+| Method    | Camera |
 
-##### Line Noise Filter
+📌 Do not batch-apply manual WB unless lighting is identical.
+[white balance](./images/menu-color-whitebalance.png)
 
-Use sparingly
-- Enable: ❌ OFF by default
-- Enable only if you see banding
-- If needed:
-    - Direction: Horizontal
-    - Strength: 1–2
+*Color → Vibrance*
 
-Sony files usually do not need this unless you push shadows very hard.
+| Setting	              | Value    |
+|-------------------------|---------:|
+| Pastel tones            | ON → +10 |
+| Saturated tones         | ON → +5  |
+| Link pastel & saturated | OFF      |
+| Protect skin-tones      | ON       |
+| Avoid color shift       | ON       |
 
-##### Green Equilibration
+[vibrance](./images/menu-color-vibrance.png)
 
-Recommended for Sony
-- Enable: ✅ ON
-- Value: 1
+## STEP 4 — Exposure Tab (very conservative)
+*Exposure → Exposure*
+- Leave Exposure Compensation = 0
 
-Why:
-- Sony sensors sometimes show slight green channel imbalance
-- This improves color consistency, especially in shadows
+Batch exposure correction is unsafe — adjust per image if needed.
+[exposure](./images/menu-exposure-exposure.png)
 
-This is subtle but beneficial.
+*Exposure → Shadows / Highlights*
 
-##### PDAF Lines Filter (Very Important for Sony)
+| Setting	         | Value              |
+|--------------------|-------------------:|
+| Color space        | L\*a\*b\*             |
+| Highlights         | ON → 10            |
+| Shadows            | ON → 10            |
+| Tonal width (both) | minimum value → 10 |
+| Radius	         | minimum value → 10 |
 
-Sony cameras use on-sensor PDAF.
-- Enable: ✅ ON
-- Only applies if your camera has PDAF (most modern Sonys do)
+This gently protects highlights and opens shadows without noise blow-up.
+[shadows](./images/menu-exposure-shadows.png)
 
-Why:
-- PDAF rows can produce:
-    - Horizontal stripes
-    - Grid-like artifacts
-    - Color inconsistencies when lifting shadows
+*Exposure → Tone Equalizer/Mapping*
+Do not change the default settings.
 
-This filter is cheap and safe — keep it enabled.
+## STEP 5 — Detail Tab (batch-safe)
+*Detail → Noise Reduction*
 
-##### Direction “Horizontal only on PDAF rows”
+| Setting	     | Value  |
+|----------------|--------|
+| Luminance NR	 | OFF    |
+| Chrominance NR |ON → 15 |
 
-Use this only if:
-- You see residual PDAF artifacts
-- Otherwise, leave it alone
+![noise reduction](./images/menu-detail-noisereduction.png) 
 
-Default behavior is usually sufficient.
+📌 Luminance noise varies too much for batch processing.
+Chroma NR at 15 is safe even at low ISO.
 
+*Detail → Sharpening*
 
+| Setting	| Value |
+|-----------|-----------------:|
+| Method	| RL Deconvolution |
+| Radius	| 0.7              | 
+| Amount	| 80               |
+| Damping	| 20               |
 
-Sony sensors occasionally show hot pixels in shadows — keep this enabled.
+This is capture sharpening only — safe for all outputs.
 
-▶ Black Level & White Point
+![sharpning](./images/menu-detail-sharpning.png)
 
-Leave default
+*Detail → Local Contrast*
+| Setting  | Value |
+|----------|-------|
+| Enable   | OFF   |
 
-Sony ARW metadata is reliable here
+Local Contrast is scene-dependent — don’t batch it.
 
-2. Color Tab
-▶ Input Profile
+![local contrast](./images/menu-detail-local-contrast.png) 
 
-Input Profile: Auto-matched camera profile
+## STEP 6 — Transform / Lens(safe)
+Lens → Automatic Lens Correction
+- ON (Distortion + Vignetting + CA)
 
-DCP Illuminant: As Shot
+Transform
+- Leave OFF for batch (crop/rotate later if needed)
 
-This gives you Sony-like color without baking in heavy contrast.
+![Transform](./images/menu-transform-lens.png)
 
-📌 If you prefer a flatter base:
+## STEP 7 — Save as a Batch Profile
 
-Try Camera Standard → compare
+1. Open one ARW image in the Editor
+2. Look at the right-hand panel, near the top
+3. Find the Processing Profile section
+(it shows the currently active profile name)
+4. Click the disk / save icon next to the profile name
+(or the small menu button, depending on your theme)
 
-▶ White Balance
+Choose:
+- Save current profile…
+- Enter a name, for example:
+>>> Sony_ARW_Batch_Base_RT5.10.pp3
 
-Method: Camera
 
-Fine-tune manually per image
+Confirm
 
-Sony AWB is good but slightly cool; don’t hesitate to warm slightly.
+✅ The profile is now saved.
 
-▶ Color Calibration (Highly Recommended)
+## STEP 8 — Batch Process in File Browser
 
-This replaces crude saturation sliders.
+1. Go to File Browser
+2. Select all .ARW files
+3. Right-click → Processing Profile
+4. Apply Sony_ARW_Batch_Base_RT5.10.pp3
+5. Send to Queue
+6. Start processing
 
-Enable Color Calibration
+## Optional: Two-Profile Strategy (Recommended)
 
-Mode: Chromaticity
+| Profile	              | Use case                  |
+|-------------------------|---------------------------|
+| Sony_ARW_Batch_Base	  | ISO ≤ 1600                |
+| Sony_ARW_Batch_HighISO  |	AMaZE → RCD, Chroma NR 25 |
 
-Global Saturation: +5 to +8
+## Final Takeaway
 
-Avoid channel tweaks unless necessary
-
-This keeps skin tones natural (very important for Sony).
-
-▶ Vibrance
-
-Amount: +10 to +15
-
-Pastel Protection: On
-
-Avoid the Saturation slider unless you know why you’re using it.
-
-3. Exposure Tab
-▶ Exposure
-
-Exposure Compensation: Adjust per image
-
-Highlight Reconstruction: Color Propagation
-
-Sony highlights recover very well — use this early.
-
-▶ Shadows / Highlights
-
-Shadows: +10 to +20
-
-Highlights: -10 to -20
-
-Tonal Width: default
-
-Subtle adjustments only — Sony files don’t like heavy shadow lifting.
-
-4. Tone Mapping & Contrast
-▶ Tone Curve
-
-Use Parametric Tone Curve
-
-Gentle S-curve:
-
-Slight lift in highlights
-
-Slight dip in shadows
-
-Avoid aggressive curves — Sony already has strong micro-contrast.
-
-▶ Local Contrast
-
-Amount: +10
-
-Radius: default
-
-Avoid at high ISO
-
-Optional but very effective for landscapes.
-
-5. Detail Tab
-▶ Noise Reduction (Zoom to 100%)
-
-Sony ARW has clean luminance noise but visible chroma noise.
-
-Chrominance NR
-
-Amount: 20–30
-
-Auto color detection: On
-
-Luminance NR
-
-Amount: 5–15 (ISO dependent)
-
-Detail: 50
-
-Contrast: 0–10
-
-📌 Always adjust per ISO — do not bake strong NR into your default.
-
-▶ Sharpening
-
-Use Capture Sharpening only.
-
-Method: RL Deconvolution
-
-Radius: 0.7
-
-Amount: 100
-
-Damping: 20
-
-Sony files sharpen extremely well — don’t oversharpen.
-
-6. Lens / Geometry
-▶ Lens Correction
-
-Enable Automatic Lens Correction
-
-Check:
-
-Distortion
-
-Vignetting
-
-Chromatic Aberration
-
-Sony lens metadata is excellent.
-
-▶ Defringe
-
-Purple Fringe Removal: On
-
-Strength: default
-
-7. Transform Tab
-
-Rotate / Crop as needed
-
-Do this after lens correction
-
-8. Output Settings (Queue)
-▶ Color Management
-
-Output Profile: sRGB (web)
-
-Rendering Intent: Perceptual
-
-▶ Output Sharpening
-
-Enable
-
-Low for web
-
-Off for print TIFFs
-
-Save This as a Default Sony Profile
-
-Apply settings to one ARW
-
-Processing Profile → Save Current Profile
-
-Name it:
-
-Sony_ARW_Base_5.10.pp3
-
-
-Set as default for Sony cameras
-
-Quick Sony-Specific Tips
-
-Sony files hate aggressive clarity
-
-Prefer Color Calibration over Saturation
-
-Don’t over-lift shadows (green/magenta noise)
-
-Always judge noise at 100%
+This setup:
+- Matches RawTherapee 5.10 UI exactly
+- Is Sony ARW–specific
+- Is safe for hundreds of images
+- Avoids scene-dependent edits
+-  Produces neutral, flexible results
